@@ -1,7 +1,7 @@
 """Procedural database schema and row operations."""
 
-from primitive_db.constants import ID_COLUMN, ID_DEFINITION, VALID_TYPES
-from primitive_db.utils import validate_name
+from primitive_db.constants import FIRST_ID, ID_COLUMN, ID_DEFINITION, VALID_TYPES
+from primitive_db.utils import load_table_data, validate_name
 
 
 def _parse_columns(columns):
@@ -54,3 +54,44 @@ def drop_table(metadata, table_name):
     table_schema(metadata, table_name)
     del metadata[table_name]
     return metadata
+
+
+def validate_fields(metadata, table_name, fields, allow_id=True):
+    """Validate field names and exact Python types against the table schema."""
+    schema = table_schema(metadata, table_name)
+    for name, value in fields.items():
+        if name not in schema:
+            raise KeyError(f'Столбец "{name}" не найден.')
+        if name == ID_COLUMN and not allow_id:
+            raise ValueError("Изменять автоматически созданный ID нельзя")
+        if type(value) is not VALID_TYPES[schema[name]]:
+            raise ValueError(f'Столбец "{name}" ожидает тип {schema[name]}')
+
+
+def validate_rows(metadata, table_name, rows):
+    """Reject corrupt row shapes, invalid types and duplicate stored IDs."""
+    schema = table_schema(metadata, table_name)
+    seen_ids = set()
+    for row in rows:
+        if set(row) != set(schema):
+            raise ValueError(f'Повреждены записи таблицы "{table_name}"')
+        validate_fields(metadata, table_name, row)
+        row_id = row[ID_COLUMN]
+        if row_id < FIRST_ID or row_id in seen_ids:
+            raise ValueError("ID должны быть положительными и уникальными")
+        seen_ids.add(row_id)
+
+
+def insert(metadata, table_name, values):
+    """Append a validated row and return all rows with an automatic unique ID."""
+    schema = table_schema(metadata, table_name)
+    names = [name for name in schema if name != ID_COLUMN]
+    if len(values) != len(names):
+        raise ValueError(f"Ожидалось значений: {len(names)}, получено: {len(values)}")
+    fields = dict(zip(names, values))
+    validate_fields(metadata, table_name, fields)
+    rows = load_table_data(table_name)
+    validate_rows(metadata, table_name, rows)
+    new_id = max((row[ID_COLUMN] for row in rows), default=FIRST_ID - 1) + 1
+    rows.append({ID_COLUMN: new_id, **fields})
+    return rows
