@@ -47,3 +47,10 @@ def create_table(metadata, table_name, columns):
     parsed = _parse_columns(columns)
     metadata[table_name] = parsed
     return metadata
+
+
+def drop_table(metadata, table_name):
+    """Remove an existing table from the metadata dictionary."""
+    table_schema(metadata, table_name)
+    del metadata[table_name]
+    return metadata
