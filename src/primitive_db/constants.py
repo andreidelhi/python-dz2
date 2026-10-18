@@ -17,5 +17,6 @@ HELP_TEXT = """***Процесс работы с таблицей***
 <command> drop_table <имя> - удалить таблицу
 <command> insert into <имя> values (...) - добавить запись без ID
 <command> select from <имя> [where <столбец> = <значение>] - прочитать записи
+<command> update <имя> set <столбец> = <значение> where ... - обновить записи
 <command> help - справочная информация
 <command> exit - выйти из программы"""

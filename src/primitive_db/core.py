@@ -112,3 +112,21 @@ def select(table_data, where_clause=None):
         for row in table_data
         if where_clause is None or _matches(row, where_clause)
     ]
+
+
+def update(table_data, set_clause, where_clause):
+    """Return rows with validated assignments applied to matching records."""
+    if not set_clause or not where_clause:
+        raise ValueError("Для update нужны непустые set и where")
+    if ID_COLUMN in set_clause:
+        raise ValueError("Изменять автоматически созданный ID нельзя")
+    for row in table_data:
+        for name, value in {**where_clause, **set_clause}.items():
+            if name not in row:
+                raise KeyError(f'Столбец "{name}" не найден.')
+            if type(row[name]) is not type(value):
+                raise ValueError(f'Неверный тип значения столбца "{name}"')
+    return [
+        {**row, **set_clause} if _matches(row, where_clause) else row.copy()
+        for row in table_data
+    ]

@@ -64,6 +64,21 @@ def execute(command):
         result = core.select(rows, parsed["where"])
         if result is not None:
             _print_rows(schema, result)
+    elif operation == "update":
+        _schema, rows = _read_rows(metadata, table_name)
+        core.validate_fields(metadata, table_name, parsed["where"])
+        core.validate_fields(metadata, table_name, parsed["set"], allow_id=False)
+        matched = core.select(rows, parsed["where"])
+        result = core.update(rows, parsed["set"], parsed["where"])
+        if result is not None:
+            save_table_data(table_name, result)
+            if not matched:
+                print("Записей не найдено.")
+            for row in matched:
+                row_id = row["ID"]
+                print(
+                    f'Запись с ID={row_id} в таблице "{table_name}" успешно обновлена.'
+                )
     return True
 
 
