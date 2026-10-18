@@ -15,5 +15,7 @@ HELP_TEXT = """***Процесс работы с таблицей***
 <command> create_table <имя> <столбец:тип> ... - создать таблицу
 <command> list_tables - показать список всех таблиц
 <command> drop_table <имя> - удалить таблицу
+<command> insert into <имя> values (...) - добавить запись без ID
+<command> select from <имя> [where <столбец> = <значение>] - прочитать записи
 <command> help - справочная информация
 <command> exit - выйти из программы"""

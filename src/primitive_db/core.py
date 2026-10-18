@@ -95,3 +95,20 @@ def insert(metadata, table_name, values):
     new_id = max((row[ID_COLUMN] for row in rows), default=FIRST_ID - 1) + 1
     rows.append({ID_COLUMN: new_id, **fields})
     return rows
+
+
+def _matches(row, where_clause):
+    """Compare field types as well as values, so True does not match integer 1."""
+    return all(
+        name in row and type(row[name]) is type(value) and row[name] == value
+        for name, value in where_clause.items()
+    )
+
+
+def select(table_data, where_clause=None):
+    """Return independent copies of rows matching all equality conditions."""
+    return [
+        row.copy()
+        for row in table_data
+        if where_clause is None or _matches(row, where_clause)
+    ]
