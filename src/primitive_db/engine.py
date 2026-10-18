@@ -79,6 +79,20 @@ def execute(command):
                 print(
                     f'Запись с ID={row_id} в таблице "{table_name}" успешно обновлена.'
                 )
+    elif operation == "delete":
+        _schema, rows = _read_rows(metadata, table_name)
+        core.validate_fields(metadata, table_name, parsed["where"])
+        matched = core.select(rows, parsed["where"])
+        result = core.delete(rows, parsed["where"])
+        if result is not None:
+            save_table_data(table_name, result)
+            if not matched:
+                print("Записей не найдено.")
+            for row in matched:
+                row_id = row["ID"]
+                print(
+                    f'Запись с ID={row_id} успешно удалена из таблицы "{table_name}".'
+                )
     return True
 
 

@@ -130,3 +130,10 @@ def update(table_data, set_clause, where_clause):
         {**row, **set_clause} if _matches(row, where_clause) else row.copy()
         for row in table_data
     ]
+
+
+def delete(table_data, where_clause):
+    """Return all rows except those matching a nonempty WHERE condition."""
+    if not where_clause:
+        raise ValueError("Для delete нужно непустое where")
+    return [row.copy() for row in table_data if not _matches(row, where_clause)]
