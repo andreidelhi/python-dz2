@@ -165,6 +165,8 @@ def parse_command(text):
                 result["where"] = _assignments(args[3:], literals, "and")
                 return result
     if operation == "update" and len(args) >= 9 and args[1].lower() == "set":
+        # Each SET assignment has three tokens; further assignments add a comma.
+        # Only the positions after a complete assignment can contain WHERE.
         where_index = next(
             (i for i in range(5, len(args), 4) if args[i].lower() == "where"), None
         )

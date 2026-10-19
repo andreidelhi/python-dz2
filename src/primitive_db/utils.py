@@ -76,3 +76,26 @@ def remove_table_data(table_name):
         os.remove(table_path(table_name))
     except FileNotFoundError:
         pass
+
+
+def create_table_files(metadata_path, table_name, metadata):
+    """Create table files without overwriting existing data; undo failed setup."""
+    if os.path.lexists(table_path(table_name)):
+        raise ValueError(f'Файл данных таблицы "{table_name}" уже существует')
+    save_table_data(table_name, [])
+    try:
+        save_metadata(metadata_path, metadata)
+    except (OSError, ValueError):
+        remove_table_data(table_name)
+        raise
+
+
+def drop_table_files(metadata_path, table_name, metadata):
+    """Save the new schema before deleting rows; undo a failed file removal."""
+    previous = load_metadata(metadata_path)
+    save_metadata(metadata_path, metadata)
+    try:
+        remove_table_data(table_name)
+    except OSError:
+        save_metadata(metadata_path, previous)
+        raise

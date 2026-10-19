@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -256,7 +257,9 @@ def test_timer_keeps_result_and_formats_three_decimals():
 
 def test_real_cli_persists_between_processes_and_recovers_from_errors():
     with database() as (folder, _):
-        executable = Path(sys.executable).parent / "database"
+        executable = (
+            shutil.which("database") or Path(sys.executable).parent / "database"
+        )
         first = subprocess.run(
             [str(executable)],
             input="\nwrong\ncreate_table users name:str age:int "
@@ -284,7 +287,9 @@ def test_real_cli_persists_between_processes_and_recovers_from_errors():
 
 def test_cli_eof_exits_cleanly():
     with database() as (folder, _):
-        executable = Path(sys.executable).parent / "database"
+        executable = (
+            shutil.which("database") or Path(sys.executable).parent / "database"
+        )
         result = subprocess.run(
             [str(executable)],
             input="",

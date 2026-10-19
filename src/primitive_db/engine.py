@@ -4,14 +4,14 @@ import prompt
 from prettytable import PrettyTable
 
 from primitive_db import core
-from primitive_db.constants import HELP_TEXT, META_FILE, PROMPT
+from primitive_db.constants import HELP_TEXT, ID_COLUMN, META_FILE, PROMPT
 from primitive_db.decorators import handle_db_errors
 from primitive_db.parser import parse_command
 from primitive_db.utils import (
+    create_table_files,
+    drop_table_files,
     load_metadata,
     load_table_data,
-    remove_table_data,
-    save_metadata,
     save_table_data,
 )
 
@@ -44,21 +44,19 @@ def execute(command):
     if operation == "create_table":
         result = core.create_table(metadata, table_name, parsed["columns"])
         if result is not None:
-            save_table_data(table_name, [])
-            save_metadata(META_FILE, result)
+            create_table_files(META_FILE, table_name, result)
             columns = ", ".join(result[table_name])
             print(f'Таблица "{table_name}" успешно создана со столбцами: {columns}')
     elif operation == "drop_table":
         result = core.drop_table(metadata, table_name)
         if result is not None:
-            remove_table_data(table_name)
-            save_metadata(META_FILE, result)
+            drop_table_files(META_FILE, table_name, result)
             print(f'Таблица "{table_name}" успешно удалена.')
     elif operation == "insert":
         result = core.insert(metadata, table_name, parsed["values"])
         if result is not None:
             save_table_data(table_name, result)
-            row_id = result[-1]["ID"]
+            row_id = result[-1][ID_COLUMN]
             print(f'Запись с ID={row_id} успешно добавлена в таблицу "{table_name}".')
     elif operation == "select":
         schema, rows = _read_rows(metadata, table_name)
@@ -77,7 +75,7 @@ def execute(command):
             if not matched:
                 print("Записей не найдено.")
             for row in matched:
-                row_id = row["ID"]
+                row_id = row[ID_COLUMN]
                 print(
                     f'Запись с ID={row_id} в таблице "{table_name}" успешно обновлена.'
                 )
@@ -91,7 +89,7 @@ def execute(command):
             if not matched:
                 print("Записей не найдено.")
             for row in matched:
-                row_id = row["ID"]
+                row_id = row[ID_COLUMN]
                 print(
                     f'Запись с ID={row_id} успешно удалена из таблицы "{table_name}".'
                 )
