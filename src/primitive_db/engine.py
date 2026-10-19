@@ -5,6 +5,7 @@ from prettytable import PrettyTable
 
 from primitive_db import core
 from primitive_db.constants import HELP_TEXT, META_FILE, PROMPT
+from primitive_db.decorators import handle_db_errors
 from primitive_db.parser import parse_command
 from primitive_db.utils import (
     load_metadata,
@@ -20,6 +21,7 @@ def print_help():
     print(HELP_TEXT)
 
 
+@handle_db_errors
 def execute(command):
     """Parse and execute one command; return False only for exit."""
     parsed = parse_command(command)
@@ -137,7 +139,4 @@ def run():
         except (EOFError, KeyboardInterrupt):
             print()
             break
-        except (KeyError, ValueError, OSError) as error:
-            message = error.args[0] if error.args else str(error)
-            print(f"Ошибка: {message}")
     print("До свидания!")

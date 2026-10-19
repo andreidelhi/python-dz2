@@ -1,6 +1,7 @@
 """Procedural database schema and row operations."""
 
 from primitive_db.constants import FIRST_ID, ID_COLUMN, ID_DEFINITION, VALID_TYPES
+from primitive_db.decorators import handle_db_errors
 from primitive_db.utils import load_table_data, validate_name
 
 
@@ -39,6 +40,7 @@ def table_schema(metadata, table_name):
     return dict(column.split(":") for column in columns)
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     """Create a table schema with an automatic integer ID column."""
     validate_name(table_name)
@@ -49,6 +51,7 @@ def create_table(metadata, table_name, columns):
     return metadata
 
 
+@handle_db_errors
 def drop_table(metadata, table_name):
     """Remove an existing table from the metadata dictionary."""
     table_schema(metadata, table_name)
@@ -82,6 +85,7 @@ def validate_rows(metadata, table_name, rows):
         seen_ids.add(row_id)
 
 
+@handle_db_errors
 def insert(metadata, table_name, values):
     """Append a validated row and return all rows with an automatic unique ID."""
     schema = table_schema(metadata, table_name)
@@ -105,6 +109,7 @@ def _matches(row, where_clause):
     )
 
 
+@handle_db_errors
 def select(table_data, where_clause=None):
     """Return independent copies of rows matching all equality conditions."""
     return [
@@ -114,6 +119,7 @@ def select(table_data, where_clause=None):
     ]
 
 
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Return rows with validated assignments applied to matching records."""
     if not set_clause or not where_clause:
@@ -132,6 +138,7 @@ def update(table_data, set_clause, where_clause):
     ]
 
 
+@handle_db_errors
 def delete(table_data, where_clause):
     """Return all rows except those matching a nonempty WHERE condition."""
     if not where_clause:
