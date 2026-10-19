@@ -1,5 +1,7 @@
 """Reusable error handling for database operations."""
 
+import prompt
+
 
 def handle_db_errors(func):
     """Print an understandable database error and return None on failure."""
@@ -23,3 +25,26 @@ def handle_db_errors(func):
     wrapper.__doc__ = func.__doc__
     wrapper.__wrapped__ = func
     return wrapper
+
+
+def confirm_action(action_name):
+    """Require an explicit y before running a destructive action."""
+
+    def decorator(func):
+        """Decorate a function with an action-specific confirmation prompt."""
+
+        def wrapper(*args, **kwargs):
+            """Return None without changing data if the user declines."""
+            question = f'Вы уверены, что хотите выполнить "{action_name}"? [y/n]: '
+            answer = prompt.string(question, empty=True)
+            if answer != "y":
+                print("Операция отменена.")
+                return None
+            return func(*args, **kwargs)
+
+        wrapper.__name__ = func.__name__
+        wrapper.__doc__ = func.__doc__
+        wrapper.__wrapped__ = func
+        return wrapper
+
+    return decorator

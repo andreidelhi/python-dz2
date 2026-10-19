@@ -1,7 +1,7 @@
 """Procedural database schema and row operations."""
 
 from primitive_db.constants import FIRST_ID, ID_COLUMN, ID_DEFINITION, VALID_TYPES
-from primitive_db.decorators import handle_db_errors
+from primitive_db.decorators import confirm_action, handle_db_errors
 from primitive_db.utils import load_table_data, validate_name
 
 
@@ -52,6 +52,7 @@ def create_table(metadata, table_name, columns):
 
 
 @handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
     """Remove an existing table from the metadata dictionary."""
     table_schema(metadata, table_name)
@@ -139,6 +140,7 @@ def update(table_data, set_clause, where_clause):
 
 
 @handle_db_errors
+@confirm_action("удаление записей")
 def delete(table_data, where_clause):
     """Return all rows except those matching a nonempty WHERE condition."""
     if not where_clause:
