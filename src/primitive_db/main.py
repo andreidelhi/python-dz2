@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Command line entry point for the primitive database."""
 
+from primitive_db.engine import run
+
 
 def main():
     """Start the application."""
-    print("DB project is running!")
+    run()
 
 
 if __name__ == "__main__":
