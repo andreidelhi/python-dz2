@@ -4,6 +4,8 @@ import time
 
 import prompt
 
+from primitive_db.constants import CACHE_LIMIT
+
 
 def handle_db_errors(func):
     """Print an understandable database error and return None on failure."""
@@ -67,3 +69,19 @@ def log_time(func):
     wrapper.__doc__ = func.__doc__
     wrapper.__wrapped__ = func
     return wrapper
+
+
+def create_cacher():
+    """Return a closure which caches values by key and bounds its memory use."""
+    cache = {}
+
+    def cache_result(key, value_func):
+        """Compute a missing value once, and reuse it on repeated queries."""
+        if key not in cache:
+            value = value_func()
+            if len(cache) >= CACHE_LIMIT:
+                del cache[next(iter(cache))]
+            cache[key] = value
+        return cache[key]
+
+    return cache_result

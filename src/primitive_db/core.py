@@ -1,8 +1,17 @@
 """Procedural database schema and row operations."""
 
+import json
+
 from primitive_db.constants import FIRST_ID, ID_COLUMN, ID_DEFINITION, VALID_TYPES
-from primitive_db.decorators import confirm_action, handle_db_errors, log_time
+from primitive_db.decorators import (
+    confirm_action,
+    create_cacher,
+    handle_db_errors,
+    log_time,
+)
 from primitive_db.utils import load_table_data, validate_name
+
+_select_cache = create_cacher()
 
 
 def _parse_columns(columns):
@@ -115,11 +124,16 @@ def _matches(row, where_clause):
 @log_time
 def select(table_data, where_clause=None):
     """Return independent copies of rows matching all equality conditions."""
-    return [
-        row.copy()
-        for row in table_data
-        if where_clause is None or _matches(row, where_clause)
-    ]
+    key = json.dumps([table_data, where_clause], sort_keys=True, ensure_ascii=False)
+    cached = _select_cache(
+        key,
+        lambda: [
+            row.copy()
+            for row in table_data
+            if where_clause is None or _matches(row, where_clause)
+        ],
+    )
+    return [row.copy() for row in cached]
 
 
 @handle_db_errors
