@@ -93,6 +93,11 @@ def execute(command):
                 print(
                     f'Запись с ID={row_id} успешно удалена из таблицы "{table_name}".'
                 )
+    elif operation == "info":
+        _schema, rows = _read_rows(metadata, table_name)
+        print(f"Таблица: {table_name}")
+        print(f"Столбцы: {', '.join(metadata[table_name])}")
+        print(f"Количество записей: {len(rows)}")
     return True
 
 
