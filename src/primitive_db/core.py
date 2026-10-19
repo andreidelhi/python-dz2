@@ -1,7 +1,7 @@
 """Procedural database schema and row operations."""
 
 from primitive_db.constants import FIRST_ID, ID_COLUMN, ID_DEFINITION, VALID_TYPES
-from primitive_db.decorators import confirm_action, handle_db_errors
+from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import load_table_data, validate_name
 
 
@@ -87,6 +87,7 @@ def validate_rows(metadata, table_name, rows):
 
 
 @handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Append a validated row and return all rows with an automatic unique ID."""
     schema = table_schema(metadata, table_name)
@@ -111,6 +112,7 @@ def _matches(row, where_clause):
 
 
 @handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Return independent copies of rows matching all equality conditions."""
     return [

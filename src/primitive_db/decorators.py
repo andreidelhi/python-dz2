@@ -1,5 +1,7 @@
 """Reusable error handling for database operations."""
 
+import time
+
 import prompt
 
 
@@ -48,3 +50,20 @@ def confirm_action(action_name):
         return wrapper
 
     return decorator
+
+
+def log_time(func):
+    """Print elapsed wall time measured with time.monotonic()."""
+
+    def wrapper(*args, **kwargs):
+        """Measure a completed call without changing its return value."""
+        started = time.monotonic()
+        result = func(*args, **kwargs)
+        elapsed = time.monotonic() - started
+        print(f"Функция {func.__name__} выполнилась за {elapsed:.3f} секунд.")
+        return result
+
+    wrapper.__name__ = func.__name__
+    wrapper.__doc__ = func.__doc__
+    wrapper.__wrapped__ = func
+    return wrapper
