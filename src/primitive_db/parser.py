@@ -69,13 +69,20 @@ def _value(token, literals):
     raise ValueError(f"Некорректное значение: {token}. Строки заключайте в кавычки.")
 
 
+def _identifier(token, literals):
+    """Accept unquoted names and reject string-literal placeholders."""
+    if token in literals:
+        raise ValueError("Имена таблиц и столбцов указывайте без кавычек")
+    return validate_name(token)
+
+
 def _assignments(tokens, literals, separator):
     """Parse one or more column=value assignments with a given separator."""
     result = {}
     while tokens:
         if len(tokens) < 3 or tokens[1] != "=":
             raise ValueError("Ожидается условие вида столбец = значение")
-        name = validate_name(tokens[0])
+        name = _identifier(tokens[0], literals)
         if name in result:
             raise ValueError(f"Столбец {name} указан повторно")
         result[name] = _value(tokens[2], literals)
@@ -137,20 +144,20 @@ def parse_command(text):
     if operation in {"help", "exit", "list_tables"} and not args:
         return result
     if operation == "create_table" and len(args) >= 2:
-        result.update(table=validate_name(args[0]), columns=args[1:])
+        result.update(table=_identifier(args[0], literals), columns=args[1:])
         return result
     if operation in {"drop_table", "info"} and len(args) == 1:
-        result["table"] = validate_name(args[0])
+        result["table"] = _identifier(args[0], literals)
         return result
     if operation == "insert" and len(args) >= 4:
         if args[0].lower() == "into" and args[2].lower() == "values":
             result.update(
-                table=validate_name(args[1]), values=_values(args[3:], literals)
+                table=_identifier(args[1], literals), values=_values(args[3:], literals)
             )
             return result
     if operation in {"select", "delete"} and len(args) >= 2:
         if args[0].lower() == "from":
-            result["table"] = validate_name(args[1])
+            result["table"] = _identifier(args[1], literals)
             if operation == "select" and len(args) == 2:
                 result["where"] = None
                 return result
@@ -159,11 +166,11 @@ def parse_command(text):
                 return result
     if operation == "update" and len(args) >= 9 and args[1].lower() == "set":
         where_index = next(
-            (i for i in range(2, len(args)) if args[i].lower() == "where"), None
+            (i for i in range(5, len(args), 4) if args[i].lower() == "where"), None
         )
         if where_index is not None:
             result.update(
-                table=validate_name(args[0]),
+                table=_identifier(args[0], literals),
                 set=_assignments(args[2:where_index], literals, ","),
                 where=_assignments(args[where_index + 1 :], literals, "and"),
             )
